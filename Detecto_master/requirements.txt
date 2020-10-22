@@ -1,0 +1,8 @@
+matplotlib
+mock
+opencv-python
+pandas
+pytest
+sphinx
+torch
+torchvision
