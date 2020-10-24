@@ -5,6 +5,8 @@ import sys
 import os
 from absl import flags
 from absl import app
+from detecto import core, utils, visualize
+import cv2
 
 image = utils.read_image('A.jpg')
 model = core.Model.load('model_weights.pth', ['HexagonSign', 'RhombusSign'])
