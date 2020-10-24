@@ -1,25 +1,24 @@
 import torch
-from detecto import core, utils
+from detecto import core, utils, visualize
 import cv2
-import sys
 import os
-from absl import flags
-from absl import app
 
 image = utils.read_image('A.jpg')
 model = core.Model.load('model_weights.pth', ['HexagonSign', 'RhombusSign'])
+model.summary() # Dang su dung ham tu viet, co the dung torchsummary: pip install torchsummary
 
-flags.DEFINE_string('type','images', 'Type Detection')
-flags.DEFINE_float('iou_thr', '0.6', 'Threshold of Detection')
-flags.DEFINE_string('img_dir', '', 'Path to diretory of images')
-FLAGS = flags.FLAGS
 # dim = (480, 320)
 # image = cv2.imread(filename)
 # image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
-
-def main(argv):
-    if FLAGS.type == 'webcam':
-        vc = cv2.VideoCapture(-1,cv2.CAP_V4L2)
+try:
+    torch.cuda.set_device(0)
+except:
+    print("Khong dung duoc gpu")
+def detectCamera(iou_threshold):
+        try:
+           vc = cv2.VideoCapture(-1,cv2.CAP_V4L2)
+        except:
+            vc = cv2.VideoCapture(0, cv2.CAP_V4L2)
 
         if vc.isOpened(): # try to get the first frame
             rval, frame = vc.read()
@@ -39,7 +38,7 @@ def main(argv):
                 stop = time.time()
                 stt_show=0
                 print("fps: {}".format(1/(stop - start)))
-                compare = scores > FLAGS.iou_threshold
+                compare = scores > iou_threshold
                 j = 0
                 boxes_new = []
                 labels_new = []
@@ -70,16 +69,17 @@ def main(argv):
               break
         vc.release()
         cv2.destroyWindow("preview")
-    elif FLAGS.type == 'images':
-        print(isinstance(FLAGS.img_path, str))
-        assert FLAGS.img_path, '`img_path` is missing.'
-        for filename in os.listdir(FLAGS.img_path):
-            dim = (480, 320)
-            image = cv2.imread(filename)
+def detectImages(img_path, iou_threshold):
+        for filename in os.listdir(img_path):
+            dim = (320, 480)
+            image = cv2.imread(os.path.join(img_path,filename))
+            print(image.shape)
             image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+            cv2.imshow("preview", image)
             labels, boxes, scores = model.predict(image)
-            compare = scores > FLAGS.iou_threshold
+            compare = scores > iou_threshold
             j = 0
+            print(type(boxes))
             boxes_new = []
             labels_new = []
             for i in range(int(len(compare))):
@@ -87,19 +87,15 @@ def main(argv):
                     boxes_new.append(boxes[i])
                     labels_new.append(labels[i])
                     j = j + 1
-            if j > 0:
-                # convert list to torch tensor
-                boxes_new = torch.stack(boxes_new)
-                # Plot each box
-                for i in range(boxes_new.shape[0]):
-                    box = boxes_new[i]
-                    cv2.rectangle(image, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
-                    print(labels_new[i])
-                    print(scores)
-                    cv2.putText(image, '{}'.format(labels_new[i]), (box[0] + 5, box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX,
-                                1, (255, 0, 0), 2, cv2.LINE_AA)
-            cv2.imshow("preview", image)
+                    print(labels[i])
+                    print(boxes[i])
+                    print(scores[i])
+            print(type(boxes[0]))
 
-
+            # convert list to torch tensor
+            boxes_new = torch.stack(boxes_new)
+            print(boxes_new.shape)
+            print((labels_new))
+            visualize.show_labeled_image(image, boxes_new, labels_new)
 if __name__ == '__main__':
-    app.run(main)
+    detectImages('D:/TPA/Projects/GitHub/Concat_Project_Sign/Detecto_master/images', 0.5)

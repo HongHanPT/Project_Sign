@@ -524,7 +524,8 @@ class Model:
         """
 
         return self._model
-
+    def summary(self): #Co the dung torchsummary
+        print(self._model)
     def save(self, file):
         """Saves the internal model weights to a file.
 

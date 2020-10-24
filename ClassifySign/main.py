@@ -54,7 +54,7 @@ test_link = data + "test.p"
 # plt.imshow(trainX[10])
 # plt.imshow(trainX[50])
 
-data_path = 'D:\TPA\Projects\Vision\ClassifySign\Data32x32\\'
+data_path = '\Data32x32\\'
 def create_train_data():
     training_data= []
     for directory in ['Fast', 'Slow','Start','Stop']:
@@ -74,70 +74,6 @@ def create_train_data():
     shuffle(training_data)
     np.save('train_data.npy', training_data)
     return training_data
-
-classNames = {0: 'Speed limit (20km/h)',
- 1: 'Speed limit (30km/h)',
- 2: 'Speed limit (50km/h)',
- 3: 'Speed limit (60km/h)',
- 4: 'Speed limit (70km/h)',
- 5: 'Speed limit (80km/h)',
- 6: 'End of speed limit (80km/h)',
- 7: 'Speed limit (100km/h)',
- 8: 'Speed limit (120km/h)',
- 9: 'No passing',
- 10: 'No passing for vehicles over 3.5 metric tons',
- 11: 'Right-of-way at the next intersection',
- 12: 'Priority road',
- 13: 'Yield',
- 14: 'Stop',
- 15: 'No vehicles',
- 16: 'Vehicles over 3.5 metric tons prohibited',
- 17: 'No entry',
- 18: 'General caution',
- 19: 'Dangerous curve to the left',
- 20: 'Dangerous curve to the right',
- 21: 'Double curve',
- 22: 'Bumpy road',
- 23: 'Slippery road',
- 24: 'Road narrows on the right',
- 25: 'Road work',
- 26: 'Traffic signals',
- 27: 'Pedestrians',
- 28: 'Children crossing',
- 29: 'Bicycles crossing',
- 30: 'Beware of ice/snow',
- 31: 'Wild animals crossing',
- 32: 'End of all speed and passing limits',
- 33: 'Turn right ahead',
- 34: 'Turn left ahead',
- 35: 'Ahead only',
- 36: 'Go straight or right',
- 37: 'Go straight or left',
- 38: 'Keep right',
- 39: 'Keep left',
- 40: 'Roundabout mandatory',
- 41: 'End of no passing',
- 42: 'End of no passing by vehicles over 3.5 metric tons'}
-
-
-# # Shuffle data
-# trainX, trainY = shuffle(trainX, trainY)
-# #plt.imshow(trainX[0])
-#
-# validX = valid["features"]
-# validY = valid["labels"]
-#
-# testX = test["features"]
-# testY = test["labels"]
-
-# trainX = trainX.astype("float") / 255.0
-# validX = validX.astype("float") / 255.0
-# testX = testX.astype("float") / 255.0
-#
-#
-# lb = LabelBinarizer()
-# trainY = lb.fit_transform(trainY)
-# validY = lb.fit_transform(validY)
 
 def ClassifySignModel():
     model = Sequential()
@@ -176,43 +112,46 @@ model = ClassifySignModel()
 model.summary()
 aug = ImageDataGenerator(rotation_range=0.18, zoom_range=0.15, width_shift_range=0.2, height_shift_range=0.2, horizontal_flip=True)
 
-dataX= create_train_data()
-
-train, test = split_data(dataX, test_size=0.2, random_state=42)
-x_train = np.array([i[0] for i in train])
-y_train = [i[1] for i in train]
-x_test = np.array([i[0] for i in test])
-y_test = [i[1] for i in test]
-
-lb = LabelBinarizer()
-y_train = lb.fit_transform(y_train)
-y_test = lb.fit_transform(y_test)
-x_train = x_train.astype("float") / 255.0
-x_test = x_test.astype("float") / 255.0
-print(dataX)
-
-epochs = 10
-batch_size = 16
-MODEL_NAME = 'SignClassify'
-print("Start training")
+# dataX= create_train_data()
+#
+# train, test = split_data(dataX, test_size=0.2, random_state=42)
+# x_train = np.array([i[0] for i in train])
+# y_train = [i[1] for i in train]
+# x_test = np.array([i[0] for i in test])
+# y_test = [i[1] for i in test]
+#
+# lb = LabelBinarizer()
+# y_train = lb.fit_transform(y_train)
+# y_test = lb.fit_transform(y_test)
+# x_train = x_train.astype("float") / 255.0
+# x_test = x_test.astype("float") / 255.0
+# print(dataX)
+#
+# epochs = 10
+# batch_size = 16
+# MODEL_NAME = 'SignClassify'
+# print("Start training")
 #model.fit(x_train, y_train, epochs=10,
 #          validation_data =(x_test, y_test),batch_size=16,
 #          steps_per_epoch=x_train.shape[0]/batch_size)
-H = model.fit_generator(aug.flow(x_train, y_train, batch_size=batch_size), validation_data=(x_test, y_test), steps_per_epoch=x_train.shape[0]/batch_size, epochs=epochs, verbose=1)
+#H = model.fit_generator(aug.flow(x_train, y_train, batch_size=batch_size), validation_data=(x_test, y_test), steps_per_epoch=x_train.shape[0]/batch_size, epochs=epochs, verbose=1)
 #model.save_weights("classifySign.h5")
 # Load weights
 saved_model = ClassifySignModel()
 saved_model.load_weights("classifySign.h5")
 from PIL import Image
-img = cv.imread('D:/TPA/Projects/Vision/ClassifySign/0a.jpg')
-img = img.reshape((-1,32,32,3))
-print(x_test[0].shape)
+img = cv.imread('D:\TPA\Projects\GitHub\Concat_Project_Sign\ClassifySign\images/0a.jpg')
+dim = (-1, 32, 32, 3)
 print(img.shape)
+image = img.reshape(dim)
+#image = cv.resize(img, dim, interpolation=cv.INTER_AREA)
+#print(x_test[0].shape)
+print(image.shape)
 # cv.imshow('',img)
 time.sleep(1)
 timeq = time.time()
 #result = saved_model.predict(x_test[0:10])
-result = saved_model.predict(img.astype(float)/255.0)  #---- OK, chua Ok do ham reshape 
+result = saved_model.predict(image.astype(float)/255.0)  #---- OK, chua Ok do ham reshape
 time = time.time()
 #
 print(result, time- timeq)
