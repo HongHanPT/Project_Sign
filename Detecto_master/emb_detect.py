@@ -2,6 +2,7 @@ import torch
 from detecto import core, utils, visualize
 import cv2
 import os
+from ClassifySign.classifysign import classify
 
 image = utils.read_image('A.jpg')
 model = core.Model.load('model_weights.pth', ['HexagonSign', 'RhombusSign'])
@@ -51,23 +52,39 @@ def detectCamera(iou_threshold):
                 j = 0
                 boxes_new = []
                 labels_new = []
+                scores_new = []
                 for i in range(int(len(compare))):
                   if compare[i] == True:
                           boxes_new.append(boxes[i])
                           labels_new.append(labels[i])
+                          scores_new.append(scores[i])
                           j = j + 1
                 if j > 0:
                   stt_show=1
                   # convert list to torch tensor
                   boxes_new = torch.stack(boxes_new)
-                  print("ad")
                   # Plot each box
                   for i in range(boxes_new.shape[0]):
                           box = boxes_new[i]
-                          cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
-                          print(labels_new[i])
-                          print(scores)
-                          cv2.putText(frame, '{}'.format(labels_new[i]), (box[0] + 5, box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX,1, (255, 0, 0),2,cv2.LINE_AA)
+
+                          score_class, classes = classify(frame, box)
+                          if labels_new[i] == "HexagonSign":
+                              rH = scores_new[i]
+                              rR =0
+                          elif labels_new[i] == "RhombusSign":
+                              rH =0
+                              rR = scores_new[i]
+                          if (classes == 'Slow'):
+                              check = score_class * rR
+                          if (classes == 'Fast'):
+                              check = score_class * rR
+                          if (classes == 'Start'):
+                              check = score_class * rH
+                          if (classes == 'Stop'):
+                              check = score_class * rH
+                          if(check > 0.6):
+                            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
+                            cv2.putText(frame, '{}'.format(classes), (box[0] + 5, box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX,1, (255, 0, 0),2,cv2.LINE_AA)
                 cv2.imshow("preview", frame)
 
 
