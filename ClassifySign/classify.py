@@ -141,7 +141,7 @@ saved_model = ClassifySignModel()
 saved_model.load_weights("classifySign.h5")
 from PIL import Image
 img = cv.imread('D:\TPA\Projects\GitHub\Concat_Project_Sign\ClassifySign\images/0a.jpg')
-dim = (-1, 32, 32, 3)
+dim = (1, 32, 32, 3)
 print(img.shape)
 image = img.reshape(dim)
 #image = cv.resize(img, dim, interpolation=cv.INTER_AREA)

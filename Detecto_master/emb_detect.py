@@ -17,8 +17,15 @@ except:
 def detectCamera(iou_threshold):
         try:
            vc = cv2.VideoCapture(-1,cv2.CAP_V4L2)
+           print("Loi lan 1")
         except:
             vc = cv2.VideoCapture(0, cv2.CAP_V4L2)
+            print("Loi lan 2")
+        try:
+            vc = cv2.VideoCapture(0)
+            print("Loi lan 3")
+        except:
+            print("Loi tiep")
 
         if vc.isOpened(): # try to get the first frame
             rval, frame = vc.read()
@@ -28,6 +35,8 @@ def detectCamera(iou_threshold):
         count =0
         stt_show =0
         while rval:
+            dim = (480, 640)
+            frame = cv2.resize(frame, dim, interpolation=cv2.INTER_AREA)
             if(stt_show ==0):
                 cv2.imshow("preview", frame)
             key = cv2.waitKey(20)
@@ -98,4 +107,5 @@ def detectImages(img_path, iou_threshold):
             print((labels_new))
             visualize.show_labeled_image(image, boxes_new, labels_new)
 if __name__ == '__main__':
-    detectImages('D:/TPA/Projects/GitHub/Concat_Project_Sign/Detecto_master/images', 0.5)
+    #detectImages('D:/TPA/Projects/GitHub/Concat_Project_Sign/Detecto_master/images', 0.5)
+    detectCamera(0.1)
