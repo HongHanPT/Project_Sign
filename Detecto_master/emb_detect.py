@@ -6,7 +6,7 @@ from ClassifySign.classifysign import classify
 
 image = utils.read_image('A.jpg')
 model = core.Model.load('model_weights.pth', ['HexagonSign', 'RhombusSign'])
-model.summary() # Dang su dung ham tu viet, co the dung torchsummary: pip install torchsummary
+#model.summary() # Dang su dung ham tu viet, co the dung torchsummary: pip install torchsummary
 
 # dim = (480, 320)
 # image = cv2.imread(filename)
@@ -82,9 +82,11 @@ def detectCamera(iou_threshold):
                               check = score_class * rH
                           if (classes == 'Stop'):
                               check = score_class * rH
+                          cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
                           if(check > 0.6):
-                            cv2.rectangle(frame, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
                             cv2.putText(frame, '{}'.format(classes), (box[0] + 5, box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX,1, (255, 0, 0),2,cv2.LINE_AA)
+                          elif check < 0.6:
+                            cv2.putText(frame, 'Khong xac dinh', (box[0] + 5, box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX,1, (255, 0, 0),2,cv2.LINE_AA)
                 cv2.imshow("preview", frame)
 
 
@@ -99,30 +101,55 @@ def detectImages(img_path, iou_threshold):
         for filename in os.listdir(img_path):
             dim = (320, 480)
             image = cv2.imread(os.path.join(img_path,filename))
-            print(image.shape)
+            #print(image.shape)
             image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
             cv2.imshow("preview", image)
             labels, boxes, scores = model.predict(image)
             compare = scores > iou_threshold
             j = 0
-            print(type(boxes))
+            #print(type(boxes))
             boxes_new = []
             labels_new = []
+            scores_new = []
             for i in range(int(len(compare))):
                 if compare[i] == True:
                     boxes_new.append(boxes[i])
                     labels_new.append(labels[i])
+                    scores_new.append(scores[i])
                     j = j + 1
-                    print(labels[i])
-                    print(boxes[i])
-                    print(scores[i])
-            print(type(boxes[0]))
 
-            # convert list to torch tensor
-            boxes_new = torch.stack(boxes_new)
-            print(boxes_new.shape)
-            print((labels_new))
-            visualize.show_labeled_image(image, boxes_new, labels_new)
+            if j > 0:
+                stt_show = 1
+                # convert list to torch tensor
+                boxes_new = torch.stack(boxes_new)
+                # Plot each box
+                for i in range(boxes_new.shape[0]):
+                    box = boxes_new[i]
+
+                    score_class, classes = classify(image, box)
+                    if labels_new[i] == "HexagonSign":
+                        rH = scores_new[i]
+                        rR = 0
+                    elif labels_new[i] == "RhombusSign":
+                        rH = 0
+                        rR = scores_new[i]
+                    if (classes == 'Slow'):
+                        check = score_class * rR
+                    if (classes == 'Fast'):
+                        check = score_class * rR
+                    if (classes == 'Start'):
+                        check = score_class * rH
+                    if (classes == 'Stop'):
+                        check = score_class * rH
+                    cv2.rectangle(image, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 1)
+                    if (check > 0.6):
+                        cv2.putText(image, '{} {}'.format(classes, check), (box[0] + 5, box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                                    (255, 0, 0), 2, cv2.LINE_AA)
+                    elif check < 0.6:
+                        cv2.putText(image, 'Khong xac dinh', (box[0] + 5, box[1] - 5), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                                    (255, 0, 0), 2, cv2.LINE_AA)
+            cv2.imshow("preview", image)
+            cv2.imwrite(os.path.join(img_path, "_"+filename), image)
 if __name__ == '__main__':
-    #detectImages('D:/TPA/Projects/GitHub/Concat_Project_Sign/Detecto_master/images', 0.5)
-    detectCamera(0.1)
+    detectImages(r'C:\Users\handi\OneDrive\Documents\Project_Sign\Detecto_master\images', 0.5)
+    #detectCamera(0.1)

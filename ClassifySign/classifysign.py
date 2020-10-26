@@ -35,6 +35,14 @@ import os
 from sklearn.model_selection import train_test_split as split_data
 import time
 
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        print(gpus)
+        tf.config.experimental.set_virtual_device_configuration(gpus[0], [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=4000)])
+    except RuntimeError as e:
+        print("============================> {}".format(e))
 """## **Xây dựng mô hình**"""
 
 def ClassifySignModel():
@@ -141,7 +149,7 @@ def training(model):
 
 """### Thực hành nhận dạng vật thể"""
 
-def classify(image, boxe=None): # boxe = (x, y, xmax, ymax)
+def classify(image, box=None): # box = (x, y, xmax, ymax)
     # # Create a basic model instance
     # model = ClassifySignModel()
 
@@ -152,10 +160,12 @@ def classify(image, boxe=None): # boxe = (x, y, xmax, ymax)
 
     # Recreate the exact same model, including its weights and the optimizer
     new_model = ClassifySignModel()
-    new_model.load_weights('classifySign.h5')
+    new_model.load_weights(r'C:\Users\handi\OneDrive\Documents\Project_Sign\ClassifySign\classifySign.h5')
 
     # Show the model architecture
     #new_model.summary()
+
+
 
     def crop(img, coords):
         x_max = int(coords[2])
@@ -165,13 +175,13 @@ def classify(image, boxe=None): # boxe = (x, y, xmax, ymax)
         print(x_max, x_min, y_max, y_min)
         crop_img = img[y_min:y_max, x_min:x_max]
         return crop_img
-    def check_boxe():
-        if boxe ==None:
+    def check_box():
+        if box ==None:
            return True
-        if boxe[2] - boxe [0] <= 32:
+        if box[2] - box[0] <= 32:
           print('Check False')
           return False
-        if boxe[3] - boxe [1] <= 32:
+        if box[3] - box[1] <= 32:
           print('Check False')
           return False
         print('Check True')
@@ -188,10 +198,9 @@ def classify(image, boxe=None): # boxe = (x, y, xmax, ymax)
 
     classes = ["Fast", "Slow", "Start", "Stop"]
     result = None
-    if check_boxe():
-        if boxe != None:
-                  image = crop(image, boxe)
-        cv2_imshow(image)
+    if check_box():
+        if box != None:
+                  image = crop(image, box)
         image=cv.resize(image,(32,32))
 
         try:
